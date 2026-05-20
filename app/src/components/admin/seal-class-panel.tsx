@@ -29,13 +29,21 @@ export function SealClassPanel({ classes }: { classes: Item[] }) {
       const res = await fetch('/api/admin/seal', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ classId: selected.id }),
+        body: JSON.stringify({
+          classId: selected.id,
+          uniId: selected.universityId,
+        }),
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Seal failed');
       setManifest(data.manifest);
-      toast.success('Class sealed. The archive is forever.');
-    } catch {
-      toast.error('Seal failed.');
+      toast.success(
+        data.demo
+          ? 'Demo seal logged. No real archive was created.'
+          : `Class sealed. ${data.count ?? 0} profiles archived.`
+      );
+    } catch (err) {
+      toast.error((err as Error).message);
     } finally {
       setSealing(false);
     }

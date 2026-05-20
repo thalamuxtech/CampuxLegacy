@@ -16,9 +16,11 @@ import {
   Sparkles,
   Bell,
   Search,
+  KeyRound,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { CommandPalette } from './command-palette';
 
 const nav = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -27,6 +29,7 @@ const nav = [
   { href: '/admin/graduates', label: 'Graduates', icon: GraduationCap },
   { href: '/admin/universities', label: 'Universities', icon: Building2 },
   { href: '/admin/contacts', label: 'Contact inbox', icon: Mail },
+  { href: '/admin/roles', label: 'Roles', icon: KeyRound },
   { href: '/admin/audit', label: 'Audit log', icon: ShieldCheck },
   { href: '/admin/seal', label: 'Seal class', icon: Lock },
 ];
@@ -53,6 +56,7 @@ export function AdminShell({
 
   return (
     <div className="min-h-dvh bg-[#F5F2EC] text-ink">
+      <CommandPalette />
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 hidden lg:flex w-[260px] flex-col border-r border-ink/10 bg-ink text-paper">
         <div className="px-6 pt-7 pb-5 flex items-center gap-2">
@@ -150,15 +154,23 @@ export function AdminShell({
       {/* Main */}
       <div className="lg:pl-[260px]">
         <div className="sticky top-0 z-20 hidden lg:flex h-16 items-center gap-4 border-b border-ink/10 bg-[#F5F2EC]/80 backdrop-blur px-8">
-          <div className="relative max-w-md flex-1">
+          <button
+            onClick={() => {
+              window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'k', metaKey: true })
+              );
+            }}
+            className="relative max-w-md flex-1 group"
+            type="button"
+          >
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search graduates, universities, requests…"
-              className="h-10 w-full rounded-full bg-white border border-ink/10 pl-9 pr-4 text-sm placeholder:text-ink-400 focus:outline-none focus:border-ink/30"
-            />
-          </div>
+            <span className="block h-10 w-full rounded-full bg-white border border-ink/10 pl-9 pr-16 text-sm text-ink-400 text-left leading-10 group-hover:border-ink/30">
+              {search || 'Jump to a page or action…'}
+            </span>
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] uppercase tracking-widest text-ink-400 border border-ink/10 rounded px-1.5 py-0.5 bg-paper">
+              ⌘K
+            </kbd>
+          </button>
           <button className="relative grid h-10 w-10 place-items-center rounded-full bg-white border border-ink/10 hover:border-ink/30">
             <Bell className="h-4 w-4" />
             <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-accent" />

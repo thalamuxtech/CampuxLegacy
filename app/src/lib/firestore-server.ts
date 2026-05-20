@@ -437,6 +437,207 @@ export async function listGraduatesForClassPublic(
   return snap.docs.map((d) => ({ ...d.data(), id: d.id }));
 }
 
+export type AdminMetrics = {
+  universities: number;
+  classes: number;
+  totalGraduates: number;
+  sealedGraduates: number;
+  liveGraduates: number;
+  pendingGraduates: number;
+  pendingOnboarding: number;
+  inReviewOnboarding: number;
+  pendingGoodwills: number;
+  flaggedGoodwills: number;
+  unreadContacts: number;
+};
+
+export type GradStatusCount = { year: number; count: number };
+export type UniBreakdown = {
+  id: string;
+  name: string;
+  graduates: number;
+  classes: number;
+};
+export type RecentSignup = {
+  id: string;
+  fullName: string;
+  portraitUrl: string;
+  departmentName?: string;
+  universityName?: string;
+  status: string;
+  year: number;
+};
+
+export async function adminOverview(): Promise<{
+  metrics: AdminMetrics;
+  distribution: GradStatusCount[];
+  breakdown: UniBreakdown[];
+  recent: RecentSignup[];
+} | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+
+  const [universitiesSnap, gradsSnap, onboardingSnap, contactsSnap, goodwillsSnap] =
+    await Promise.all([
+      admin.db.collection('universities').limit(200).get(),
+      admin.db.collectionGroup('graduates').limit(5000).get(),
+      admin.db.collection('onboardingRequests').limit(500).get(),
+      admin.db.collection('contacts').limit(500).get(),
+      admin.db
+        .collectionGroup('goodwills')
+        .where('approved', '==', false)
+        .limit(500)
+        .get(),
+    ]);
+
+  const universities = universitiesSnap.size;
+  const classCounts = new Map<string, number>();
+  const yearCounts = new Map<number, number>();
+  const uniGradCounts = new Map<string, number>();
+
+  let total = 0;
+  let sealed = 0;
+  let approved = 0;
+  let pending = 0;
+  const recent: RecentSignup[] = [];
+
+  for (const d of gradsSnap.docs) {
+    total++;
+    const data = d.data();
+    const status = data.status as string;
+    if (status === 'sealed') sealed++;
+    else if (status === 'approved') approved++;
+    else pending++;
+
+    const year = Number(data.year ?? 0);
+    if (year) yearCounts.set(year, (yearCounts.get(year) ?? 0) + 1);
+
+    const uniId = data.universityId as string | undefined;
+    if (uniId) {
+      uniGradCounts.set(uniId, (uniGradCounts.get(uniId) ?? 0) + 1);
+      const classId = data.classId as string | undefined;
+      if (classId)
+        classCounts.set(
+          `${uniId}/${classId}`,
+          (classCounts.get(`${uniId}/${classId}`) ?? 0) + 1
+        );
+    }
+
+    if (recent.length < 6) {
+      recent.push({
+        id: d.id,
+        fullName: (data.fullName as string) ?? '',
+        portraitUrl: (data.portraitUrl as string) ?? '',
+        departmentName: data.departmentName as string | undefined,
+        universityName: data.universityName as string | undefined,
+        status: status ?? 'draft',
+        year,
+      });
+    }
+  }
+
+  let inReview = 0;
+  let onboardingPending = 0;
+  for (const d of onboardingSnap.docs) {
+    const s = d.data().status as string;
+    if (s === 'in_review') inReview++;
+    else if (s === 'pending') onboardingPending++;
+  }
+
+  let unread = 0;
+  for (const d of contactsSnap.docs) {
+    if (!d.data().read) unread++;
+  }
+
+  let flagged = 0;
+  for (const d of goodwillsSnap.docs) {
+    if (d.data().flagged) flagged++;
+  }
+
+  const metrics: AdminMetrics = {
+    universities,
+    classes: classCounts.size,
+    totalGraduates: total,
+    sealedGraduates: sealed,
+    liveGraduates: approved,
+    pendingGraduates: pending,
+    pendingOnboarding: onboardingPending,
+    inReviewOnboarding: inReview,
+    pendingGoodwills: goodwillsSnap.size,
+    flaggedGoodwills: flagged,
+    unreadContacts: unread,
+  };
+
+  const distribution: GradStatusCount[] = Array.from(yearCounts.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([year, count]) => ({ year, count }));
+
+  const breakdown: UniBreakdown[] = universitiesSnap.docs.map((d) => ({
+    id: d.id,
+    name: (d.data().name as string) ?? d.id,
+    graduates: uniGradCounts.get(d.id) ?? 0,
+    classes: Array.from(classCounts.keys()).filter((k) =>
+      k.startsWith(`${d.id}/`)
+    ).length,
+  }));
+
+  return { metrics, distribution, breakdown, recent };
+}
+
+export async function listAllGraduatesForAdmin(): Promise<GraduateLite[] | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const snap = await admin.db.collectionGroup('graduates').limit(1000).get();
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      fullName: data.fullName ?? '',
+      portraitUrl: data.portraitUrl ?? '',
+      universityId: data.universityId ?? '',
+      classId: data.classId ?? '',
+      year: Number(data.year ?? 0),
+      status: data.status ?? 'draft',
+      createdAt: toISO(data.createdAt),
+      universityName: data.universityName,
+      schoolName: data.schoolName,
+      departmentName: data.departmentName,
+    };
+  });
+}
+
+export async function listAllClassesForAdmin(): Promise<
+  Array<{
+    id: string;
+    universityId: string;
+    universityName: string;
+    year: number;
+    status: string;
+    graduatesCount: number;
+  }> | null
+> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const universitiesSnap = await admin.db.collection('universities').get();
+  const uniName = new Map<string, string>();
+  universitiesSnap.docs.forEach((d) =>
+    uniName.set(d.id, (d.data().name as string) ?? d.id)
+  );
+  const snap = await admin.db.collectionGroup('classes').limit(500).get();
+  return snap.docs.map((d) => {
+    const data = d.data();
+    const universityId = d.ref.parent.parent?.id ?? '';
+    return {
+      id: d.id,
+      universityId,
+      universityName: uniName.get(universityId) ?? universityId,
+      year: Number(data.year ?? 0),
+      status: (data.status as string) ?? 'open',
+      graduatesCount: Number(data.graduatesCount ?? 0),
+    };
+  });
+}
+
 export async function getGraduatePublic(graduateId: string): Promise<{
   graduate: unknown;
   universitySlug: string | null;
