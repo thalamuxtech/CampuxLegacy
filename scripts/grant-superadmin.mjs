@@ -6,7 +6,8 @@
  * further roles through the UI.
  *
  * Usage:
- *   node scripts/grant-superadmin.mjs <email@example.com>
+ *   node scripts/grant-superadmin.mjs                       # defaults to thalamuxtech@gmail.com
+ *   node scripts/grant-superadmin.mjs <email@example.com>   # any other email
  *
  * Requires:
  *   - planning/campuxlegacy-firebase-adminsdk-fbsvc-18ada4e625.json  (service-account JSON, gitignored)
@@ -27,11 +28,13 @@ import { resolve } from 'node:path';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
-const email = process.argv[2];
+const DEFAULT_EMAIL = 'thalamuxtech@gmail.com';
+const email = process.argv[2] ?? DEFAULT_EMAIL;
 if (!email) {
-  console.error('Usage: node scripts/grant-superadmin.mjs <email>');
+  console.error('Usage: node scripts/grant-superadmin.mjs [email]');
   process.exit(1);
 }
+console.log(`Granting superadmin to: ${email}`);
 
 const saPath = resolve(
   process.cwd(),

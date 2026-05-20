@@ -59,16 +59,17 @@ Optionally add other providers (Apple, Microsoft) later.
 This grants you full admin powers so you can use `/admin/roles` to mint more roles for others.
 
 1. Visit your deployed site (or `localhost:3000` if you haven’t deployed yet)
-2. Go to **/sign-up** and create your account with your real email
+2. Go to **/sign-up** and create your account with `thalamuxtech@gmail.com`
 3. From the repo root, run:
 
    ```bash
-   node scripts/grant-superadmin.mjs your-email@example.com
+   node scripts/grant-superadmin.mjs
    ```
 
-   You should see:
+   It defaults to `thalamuxtech@gmail.com`. Pass a different email as the arg if you ever need to. You should see:
    ```
-   OK. your-email@example.com (uid) is now superadmin.
+   Granting superadmin to: thalamuxtech@gmail.com
+   OK. thalamuxtech@gmail.com (uid) is now superadmin.
    Custom claims: { "roles": { "student": true, "superadmin": true } }
    ```
 
