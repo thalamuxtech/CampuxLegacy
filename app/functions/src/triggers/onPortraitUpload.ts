@@ -8,17 +8,20 @@ import sharp from 'sharp';
 
 /**
  * On portrait upload, generate AVIF + WebP variants at 320 / 640 / 1024 / 1600
- * and write paths back onto the graduate document.
+ * and write paths back onto the nested graduate document at
+ * universities/{u}/classes/{c}/graduates/{g}.
+ *
+ * The flat top-level graduates/{id} collection is not canonical — we resolve
+ * the nested doc via a collection-group lookup on the graduate's `id` field.
  */
 export const onPortraitUpload = onObjectFinalized(
   { region: 'us-central1', memory: '1GiB', timeoutSeconds: 120 },
   async (event) => {
     const filePath = event.data.name;
     if (!filePath) return;
-    if (!filePath.match(/^graduates\/([^/]+)\/portrait\/original$/)) return;
-
     const match = filePath.match(/^graduates\/([^/]+)\/portrait\/original$/);
-    const graduateId = match![1];
+    if (!match) return;
+    const graduateId = match[1];
 
     const bucket = getStorage().bucket(event.data.bucket);
     const tmp = path.join(os.tmpdir(), `portrait-${Date.now()}`);
@@ -53,11 +56,27 @@ export const onPortraitUpload = onObjectFinalized(
     fs.unlinkSync(tmp);
 
     const db = getFirestore();
-    await db.collection('graduates').doc(graduateId).set(
-      {
-        portrait: { variants: variantPaths, processedAt: new Date().toISOString() },
+    const update = {
+      portrait: {
+        variants: variantPaths,
+        processedAt: new Date().toISOString(),
       },
-      { merge: true }
-    );
+    };
+
+    const gradSnap = await db
+      .collectionGroup('graduates')
+      .where('id', '==', graduateId)
+      .limit(1)
+      .get();
+    if (!gradSnap.empty) {
+      await gradSnap.docs[0].ref.set(update, { merge: true });
+    } else {
+      // Fallback: write a stub at top-level so the variants aren't lost even
+      // if the nested doc isn't created yet. The graduate doc owner can copy.
+      await db
+        .collection('graduates_orphan_portraits')
+        .doc(graduateId)
+        .set(update, { merge: true });
+    }
   }
 );

@@ -4,24 +4,31 @@ service firebase.storage {
 
     function isSignedIn() { return request.auth != null; }
     function role(r) { return isSignedIn() && request.auth.token.roles[r] == true; }
+    function ownsGraduate(gid) {
+      return isSignedIn()
+        && request.auth.token.graduateIds != null
+        && request.auth.token.graduateIds[gid] == true;
+    }
+    function isAdmin() { return role('superadmin') || role('university_admin'); }
 
-    // Public read for portrait variants
+    // Public read for portrait variants (written by Cloud Function only)
     match /graduates/{graduateId}/portrait/variants/{file=**} {
       allow read: if true;
-      allow write: if false; // written by Cloud Function only
+      allow write: if false;
     }
 
-    // Originals: signed-URL access only — block direct reads
+    // Originals: only the linked graduate owner (or admin) may upload.
     match /graduates/{graduateId}/portrait/original {
       allow read: if false;
-      allow write: if isSignedIn()
+      allow write: if (ownsGraduate(graduateId) || isAdmin())
         && request.resource.size < 10 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
 
+    // Showcase video: same restriction as portrait.
     match /graduates/{graduateId}/showcase/{file=**} {
       allow read: if false;
-      allow write: if isSignedIn()
+      allow write: if (ownsGraduate(graduateId) || isAdmin())
         && request.resource.size < 200 * 1024 * 1024
         && request.resource.contentType.matches('video/.*');
     }

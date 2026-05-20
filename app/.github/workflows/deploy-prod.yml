@@ -1,33 +1,49 @@
-name: Deploy Production
+name: Deploy Functions + Rules
 on:
   push:
     branches: [main]
+    paths:
+      - 'app/functions/**'
+      - 'app/firestore.rules'
+      - 'app/firestore.indexes.json'
+      - 'app/storage.rules'
+      - 'app/firebase.json'
+      - '.github/workflows/deploy-prod.yml'
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions: { contents: read, id-token: write }
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: 'npm', cache-dependency-path: app/package-lock.json }
-      - run: npm ci
-        working-directory: app
-      - run: npm run build
-        working-directory: app
-      - name: Build functions
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: app/functions/package-lock.json
+
+      - name: Write service account
+        run: |
+          echo "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/sa.json" >> "$GITHUB_ENV"
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SA_PROD }}
+
+      - name: Install + build functions
         run: |
           cd app/functions
           npm ci
           npm run build
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SA_PROD }}
-          projectId: campuxlegacy
-          channelId: live
-          entryPoint: app
-      - name: Deploy functions + rules
-        run: npx firebase-tools deploy --only functions,firestore:rules,storage:rules --project campuxlegacy
-        working-directory: app
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_PROD }}
+
+      - name: Deploy functions, rules, indexes
+        run: |
+          cd app
+          npx firebase-tools deploy \
+            --only functions,firestore:rules,firestore:indexes,storage \
+            --project campuxlegacy \
+            --non-interactive \
+            --force

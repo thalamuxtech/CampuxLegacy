@@ -1,3 +1,17 @@
+/**
+ * CANONICAL SCHEMA — nested.
+ *
+ * Graduates live at: universities/{uniId}/classes/{classId}/graduates/{gradId}
+ * Sub-collections:    .../graduates/{gradId}/memories/{memoryId}
+ *                     .../graduates/{gradId}/goodwills/{goodwillId}
+ *
+ * The graduate doc denormalises universityId/schoolId/classId/year/
+ * universityName/schoolName/departmentName so collection-group queries
+ * (used by /search and global feeds) need no joins.
+ *
+ * Top-level `graduates/{id}` is NOT the canonical path. If you see writes
+ * to it, fix them to use the nested path above.
+ */
 import { z } from 'zod';
 
 export const visibilitySchema = z.enum(['public', 'connections', 'private']);

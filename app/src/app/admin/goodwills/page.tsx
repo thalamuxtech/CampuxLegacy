@@ -1,11 +1,13 @@
 import { adminStore } from '@/lib/admin-store';
+import { listPendingGoodwills } from '@/lib/firestore-server';
 import { PageHeader } from '@/components/admin/page-header';
 import { GoodwillsModeration } from '@/components/admin/goodwills-moderation';
 
 export const dynamic = 'force-dynamic';
 
-export default function GoodwillsAdminPage() {
-  const items = adminStore().goodwills;
+export default async function GoodwillsAdminPage() {
+  const fromFirestore = await listPendingGoodwills();
+  const items = fromFirestore ?? adminStore().goodwills;
   return (
     <div className="space-y-6">
       <PageHeader

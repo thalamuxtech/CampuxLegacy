@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Always log into admin moderation queue
+  // Always log into the in-memory moderation queue so demo mode keeps working.
   addGoodwill(parsed.data);
 
   const admin = getAdmin();
@@ -21,14 +21,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, demo: true });
   }
 
-  const ref = admin.db
-    .collection('graduates')
-    .doc(parsed.data.graduateId)
-    .collection('goodwills')
-    .doc();
+  // Canonical path: universities/{u}/classes/{c}/graduates/{g}/goodwills/{id}.
+  // Resolve the graduate via collection-group lookup so the client only needs the id.
+  const gradSnap = await admin.db
+    .collectionGroup('graduates')
+    .where('id', '==', parsed.data.graduateId)
+    .limit(1)
+    .get();
+  if (gradSnap.empty) {
+    return NextResponse.json({ error: 'Graduate not found' }, { status: 404 });
+  }
+  const gradRef = gradSnap.docs[0].ref;
+  const flagged = /https?:\/\//i.test(parsed.data.message);
+  const ref = gradRef.collection('goodwills').doc();
   await ref.set({
     ...parsed.data,
     approved: false,
+    flagged,
     createdAt: new Date().toISOString(),
   });
   return NextResponse.json({ ok: true, id: ref.id });

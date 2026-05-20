@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge';
 type Item = {
   id: string;
   graduateId: string;
-  graduateName: string;
+  graduateName?: string;
   fromName: string;
   fromRelation?: string;
   message: string;
   approved: boolean;
   flagged?: boolean;
   createdAt: string;
+  parentPath?: string;
 };
 
 export function GoodwillsModeration({ initial }: { initial: Item[] }) {
@@ -34,7 +35,8 @@ export function GoodwillsModeration({ initial }: { initial: Item[] }) {
     });
   }, [items, filter]);
 
-  async function act(id: string, action: 'approve' | 'reject') {
+  async function act(item: Item, action: 'approve' | 'reject') {
+    const id = item.id;
     if (action === 'reject') {
       setItems((prev) => prev.filter((i) => i.id !== id));
     } else {
@@ -43,10 +45,15 @@ export function GoodwillsModeration({ initial }: { initial: Item[] }) {
       );
     }
     try {
-      await fetch(`/api/admin/goodwills/${id}`, {
+      const path = item.parentPath ? `goodwills/${id}` : id;
+      const qs = item.parentPath
+        ? `?path=${encodeURIComponent(`${item.parentPath}/goodwills/${id}`)}`
+        : '';
+      await fetch(`/api/admin/goodwills/${id}${qs}`, {
         method: action === 'approve' ? 'PATCH' : 'DELETE',
       });
       toast.success(action === 'approve' ? 'Approved ✨' : 'Removed');
+      void path;
     } catch {
       toast.error('Could not update');
     }
@@ -108,7 +115,7 @@ export function GoodwillsModeration({ initial }: { initial: Item[] }) {
                     <Quote className="h-4 w-4 text-ink-400" />
                   )}
                   <span className="text-xs uppercase tracking-widest text-ink-500">
-                    For {g.graduateName}
+                    For {g.graduateName ?? g.graduateId}
                   </span>
                 </div>
                 {g.flagged && <Badge className="bg-rose/10 text-rose">Flagged</Badge>}
@@ -123,14 +130,14 @@ export function GoodwillsModeration({ initial }: { initial: Item[] }) {
 
               {!g.approved && (
                 <div className="mt-5 flex gap-2">
-                  <Button size="sm" variant="accent" onClick={() => act(g.id, 'approve')}>
+                  <Button size="sm" variant="accent" onClick={() => act(g, 'approve')}>
                     <Check className="h-4 w-4" /> Approve
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="text-rose hover:bg-rose/10"
-                    onClick={() => act(g.id, 'reject')}
+                    onClick={() => act(g, 'reject')}
                   >
                     <X className="h-4 w-4" /> Reject
                   </Button>

@@ -6,6 +6,7 @@ node_modules/
 .next/
 out/
 app/functions/lib/
+**/tsconfig.tsbuildinfo
 
 # Local env (never commit secrets)
 .env

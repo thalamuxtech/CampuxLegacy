@@ -31,9 +31,25 @@ const nav = [
   { href: '/admin/seal', label: 'Seal class', icon: Lock },
 ];
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({
+  children,
+  sessionEmail,
+  demoMode,
+}: {
+  children: React.ReactNode;
+  sessionEmail?: string;
+  demoMode?: boolean;
+}) {
   const pathname = usePathname();
   const [search, setSearch] = useState('');
+  const email = sessionEmail ?? 'admin';
+  const initials =
+    email
+      .split('@')[0]
+      .split(/[._-]/)
+      .slice(0, 2)
+      .map((s) => s[0]?.toUpperCase() ?? '')
+      .join('') || 'AD';
 
   return (
     <div className="min-h-dvh bg-[#F5F2EC] text-ink">
@@ -149,11 +165,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
           <div className="flex items-center gap-3 pl-2">
             <div className="grid h-9 w-9 place-items-center rounded-full bg-ink text-paper text-xs font-medium">
-              SA
+              {initials}
             </div>
             <div className="hidden xl:block">
-              <p className="text-sm font-medium leading-none">Superadmin</p>
-              <p className="text-xs text-ink-500 mt-1">thalamuxtech@gmail.com</p>
+              <p className="text-sm font-medium leading-none">
+                {demoMode ? 'Demo admin' : 'Signed in'}
+              </p>
+              <p className="text-xs text-ink-500 mt-1">{email}</p>
             </div>
           </div>
         </div>

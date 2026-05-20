@@ -5,6 +5,7 @@ import {
   universityBreakdown,
   adminStore,
 } from '@/lib/admin-store';
+import { listAudit } from '@/lib/firestore-server';
 import { AdminStats } from '@/components/admin/admin-stats';
 import { ClassChart } from '@/components/admin/class-chart';
 import { UniversityBars } from '@/components/admin/university-bars';
@@ -14,12 +15,13 @@ import { PageHeader } from '@/components/admin/page-header';
 
 export const dynamic = 'force-dynamic';
 
-export default function AdminOverview() {
+export default async function AdminOverview() {
   const m = adminMetrics();
   const dist = classDistribution();
   const breakdown = universityBreakdown();
   const recent = recentSignups(6);
-  const audit = adminStore().audit.slice(0, 6);
+  const auditFromFirestore = await listAudit(6);
+  const audit = auditFromFirestore ?? adminStore().audit.slice(0, 6);
 
   return (
     <div className="space-y-8">

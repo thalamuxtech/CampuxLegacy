@@ -7,7 +7,7 @@ service cloud.firestore {
     function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
     function isAdmin()    { return role('superadmin') || role('university_admin'); }
 
-    // Universities — public read, admin write
+    // Universities — public read, admin write.
     match /universities/{uniId} {
       allow read: if true;
       allow write: if isAdmin();
@@ -30,10 +30,20 @@ service cloud.firestore {
           allow read: if resource.data.status in ['approved', 'sealed']
                       || (isSignedIn() && resource.data.uid == request.auth.uid)
                       || role('rep') || isAdmin();
-          allow update: if (isOwner(resource.data.uid) && resource.data.status != 'sealed')
-                        || role('rep') || isAdmin();
+
+          // Create / delete: rep or admin only.
           allow create: if role('rep') || isAdmin();
           allow delete: if isAdmin();
+
+          // Owner updates: status field locked, sealed docs immutable.
+          allow update: if (
+            isOwner(resource.data.uid)
+            && resource.data.status != 'sealed'
+            && request.resource.data.status == resource.data.status
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.universityId == resource.data.universityId
+            && request.resource.data.classId == resource.data.classId
+          ) || role('rep') || isAdmin();
 
           match /memories/{memoryId} {
             allow read: if true;
@@ -42,12 +52,21 @@ service cloud.firestore {
                || isAdmin());
           }
 
+          // Goodwills: public-facing submissions go through the Next API route
+          // + submitGoodwill callable (admin SDK bypasses rules). Direct client
+          // writes are blocked to stop drive-by spam.
           match /goodwills/{goodwillId} {
             allow read: if resource.data.approved == true || isAdmin()
               || get(/databases/$(db)/documents/universities/$(uniId)/classes/$(classId)/graduates/$(gradId)).data.uid == request.auth.uid;
-            allow create: if true; // anyone can leave a goodwill (server moderates)
+            allow create: if false;
             allow update, delete: if isAdmin()
               || get(/databases/$(db)/documents/universities/$(uniId)/classes/$(classId)/graduates/$(gradId)).data.uid == request.auth.uid;
+          }
+
+          // Sealing snapshot — written by sealClass callable; read by admins.
+          match /archive/{archiveId} {
+            allow read: if isAdmin();
+            allow write: if false;
           }
         }
       }
@@ -57,14 +76,22 @@ service cloud.firestore {
       allow read, write: if isOwner(uid) || role('superadmin');
     }
 
+    // Onboarding requests: write only via server route (admin SDK).
     match /onboardingRequests/{id} {
-      allow create: if true;
-      allow read, update, delete: if role('superadmin');
+      allow create: if false;
+      allow read, update, delete: if isAdmin();
     }
 
+    // Contact inbox: write only via server route (admin SDK).
+    match /contacts/{id} {
+      allow create: if false;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Audit log: server-only writes.
     match /audit/{eventId} {
       allow read: if isAdmin();
-      allow write: if false; // only server (admin SDK) writes
+      allow write: if false;
     }
   }
 }

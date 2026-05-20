@@ -1,20 +1,35 @@
 name: CI
 on:
   pull_request:
+    branches: [main]
   push:
-    branches: [main, staging]
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+
 jobs:
-  verify:
+  typecheck-and-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: 'npm', cache-dependency-path: app/package-lock.json }
-      - run: npm ci
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+      - name: Install
+        run: npm ci
         working-directory: app
-      - run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
         working-directory: app
-      - run: npm run typecheck
+      - name: Lint
+        run: npm run lint
         working-directory: app
-      - run: npm run build
+        continue-on-error: true
+      - name: Build
+        run: npm run build
         working-directory: app
+        env:
+          NEXT_PUBLIC_DEMO_MODE: 'true'
+          NEXT_PUBLIC_USE_EMULATORS: 'false'

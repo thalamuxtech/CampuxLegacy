@@ -1,11 +1,13 @@
 import { adminStore } from '@/lib/admin-store';
+import { listAudit } from '@/lib/firestore-server';
 import { PageHeader } from '@/components/admin/page-header';
 import { AuditFeed } from '@/components/admin/audit-feed';
 
 export const dynamic = 'force-dynamic';
 
-export default function AuditPage() {
-  const data = adminStore().audit;
+export default async function AuditPage() {
+  const fromFirestore = await listAudit(100);
+  const data = fromFirestore ?? adminStore().audit;
   return (
     <div className="space-y-6">
       <PageHeader
