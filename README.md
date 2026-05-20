@@ -95,7 +95,7 @@ To wire up real Firebase, copy `app/.env.local.example` → `app/.env.local` and
 ## Deployment
 
 - **Web app:** Firebase App Hosting auto-deploys from `main` after a one-time connection in the Firebase Console (App Hosting → New backend → root `app/`).
-- **Functions + rules + indexes:** GitHub Actions in [app/.github/workflows/deploy-prod.yml](app/.github/workflows/deploy-prod.yml) runs on every push to `main` that touches functions or rules.
+- **Functions + rules + indexes:** GitHub Actions in [.github/workflows/deploy-prod.yml](.github/workflows/deploy-prod.yml) runs on every push to `main` that touches functions or rules.
 - **Secrets:** `FIREBASE_SA_PROD` (service-account JSON) in the GitHub repo. Admin SDK credentials live in App Hosting secrets — never committed.
 
 See [`app/README.md`](app/README.md#deployment) for the full deployment + bootstrap walkthrough.

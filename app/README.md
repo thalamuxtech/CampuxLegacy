@@ -98,6 +98,6 @@ After that, `setRole` is locked to existing superadmins.
 ## Deployment
 
 1. **Firebase App Hosting** auto-deploys the Next.js app from the branch you connect in the Firebase Console.
-2. **GitHub Actions** ([.github/workflows/deploy-prod.yml](.github/workflows/deploy-prod.yml)) deploys functions, Firestore rules/indexes, and Storage rules on push to `main` (only when the relevant paths change).
+2. **GitHub Actions** ([../.github/workflows/deploy-prod.yml](../.github/workflows/deploy-prod.yml)) deploys functions, Firestore rules/indexes, and Storage rules on push to `main` (only when the relevant paths change).
 
 Required GitHub repo secret: `FIREBASE_SA_PROD` — the full service-account JSON.
