@@ -1,0 +1,32 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "graduates",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "universityId", "order": "ASCENDING" },
+        { "fieldPath": "classId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "fullName", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "graduates",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "schoolId", "order": "ASCENDING" },
+        { "fieldPath": "classId", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "goodwills",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "graduateId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

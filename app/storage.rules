@@ -1,0 +1,38 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() { return request.auth != null; }
+    function role(r) { return isSignedIn() && request.auth.token.roles[r] == true; }
+
+    // Public read for portrait variants
+    match /graduates/{graduateId}/portrait/variants/{file=**} {
+      allow read: if true;
+      allow write: if false; // written by Cloud Function only
+    }
+
+    // Originals: signed-URL access only — block direct reads
+    match /graduates/{graduateId}/portrait/original {
+      allow read: if false;
+      allow write: if isSignedIn()
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /graduates/{graduateId}/showcase/{file=**} {
+      allow read: if false;
+      allow write: if isSignedIn()
+        && request.resource.size < 200 * 1024 * 1024
+        && request.resource.contentType.matches('video/.*');
+    }
+
+    match /universities/{uniId}/branding/{file=**} {
+      allow read: if true;
+      allow write: if role('university_admin') || role('superadmin');
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

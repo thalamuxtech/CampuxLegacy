@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js / build output
+.next/
+out/
+app/functions/lib/
+
+# Local env (never commit secrets)
+.env
+.env*.local
+**/.env
+**/.env*.local
+
+# Firebase service-account keys (NEVER commit)
+*-firebase-adminsdk-*.json
+**/*-firebase-adminsdk-*.json
+planning/*.json
+.firebase/
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
