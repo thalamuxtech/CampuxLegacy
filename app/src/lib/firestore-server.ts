@@ -293,3 +293,185 @@ export async function rejectGoodwillByPath(
   });
   return true;
 }
+
+/* ---------- Public read helpers ---------- */
+
+export type UniversityDoc = {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  country: string;
+  motto?: string;
+  coverImage?: string;
+  crestImage?: string;
+  branding?: { primary?: string; accent?: string };
+  graduatesCount: number;
+  classesCount: number;
+};
+
+export type ClassDoc = {
+  id: string;
+  universityId: string;
+  year: number;
+  theme?: string;
+  coverImage?: string;
+  status: 'open' | 'review' | 'launched' | 'sealed';
+  graduatesCount: number;
+  sealedAt?: string;
+};
+
+export async function listUniversitiesPublic(): Promise<UniversityDoc[] | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const snap = await admin.db.collection('universities').limit(200).get();
+  if (snap.empty) return [];
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      name: data.name ?? d.id,
+      slug: data.slug ?? d.id,
+      city: data.city ?? '',
+      country: data.country ?? '',
+      motto: data.motto,
+      coverImage: data.coverImage,
+      crestImage: data.crestImage,
+      branding: data.branding,
+      graduatesCount: Number(data.graduatesCount ?? 0),
+      classesCount: Number(data.classesCount ?? 0),
+    };
+  });
+}
+
+export async function getUniversityBySlugPublic(
+  slug: string
+): Promise<UniversityDoc | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const snap = await admin.db
+    .collection('universities')
+    .where('slug', '==', slug)
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  const d = snap.docs[0];
+  const data = d.data();
+  return {
+    id: d.id,
+    name: data.name ?? d.id,
+    slug: data.slug ?? d.id,
+    city: data.city ?? '',
+    country: data.country ?? '',
+    motto: data.motto,
+    coverImage: data.coverImage,
+    crestImage: data.crestImage,
+    branding: data.branding,
+    graduatesCount: Number(data.graduatesCount ?? 0),
+    classesCount: Number(data.classesCount ?? 0),
+  };
+}
+
+export async function listClassesForUniversity(
+  universityId: string
+): Promise<ClassDoc[] | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const snap = await admin.db
+    .collection(`universities/${universityId}/classes`)
+    .orderBy('year', 'desc')
+    .limit(200)
+    .get();
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      universityId,
+      year: Number(data.year ?? 0),
+      theme: data.theme,
+      coverImage: data.coverImage,
+      status: (data.status as ClassDoc['status']) ?? 'open',
+      graduatesCount: Number(data.graduatesCount ?? 0),
+      sealedAt: data.sealedAt,
+    };
+  });
+}
+
+export async function getClass(
+  universityId: string,
+  year: number
+): Promise<ClassDoc | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const snap = await admin.db
+    .collection(`universities/${universityId}/classes`)
+    .where('year', '==', year)
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  const d = snap.docs[0];
+  const data = d.data();
+  return {
+    id: d.id,
+    universityId,
+    year: Number(data.year ?? year),
+    theme: data.theme,
+    coverImage: data.coverImage,
+    status: (data.status as ClassDoc['status']) ?? 'open',
+    graduatesCount: Number(data.graduatesCount ?? 0),
+    sealedAt: data.sealedAt,
+  };
+}
+
+export async function listGraduatesForClassPublic(
+  universityId: string,
+  classId: string
+): Promise<unknown[] | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const snap = await admin.db
+    .collection(`universities/${universityId}/classes/${classId}/graduates`)
+    .where('status', 'in', ['approved', 'sealed'])
+    .limit(500)
+    .get();
+  return snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+}
+
+export async function getGraduatePublic(graduateId: string): Promise<{
+  graduate: unknown;
+  universitySlug: string | null;
+  goodwills: unknown[];
+  memories: unknown[];
+} | null> {
+  const admin = getAdmin();
+  if (!admin) return null;
+  const snap = await admin.db
+    .collectionGroup('graduates')
+    .where('id', '==', graduateId)
+    .limit(1)
+    .get();
+  if (snap.empty) return null;
+  const gradDoc = snap.docs[0];
+  const data = gradDoc.data();
+  const universityId = data.universityId as string | undefined;
+  let universitySlug: string | null = null;
+  if (universityId) {
+    const uniSnap = await admin.db
+      .collection('universities')
+      .doc(universityId)
+      .get();
+    universitySlug = (uniSnap.data()?.slug as string) ?? null;
+  }
+  const goodwillsSnap = await gradDoc.ref
+    .collection('goodwills')
+    .where('approved', '==', true)
+    .limit(60)
+    .get();
+  const memoriesSnap = await gradDoc.ref.collection('memories').limit(20).get();
+  return {
+    graduate: { ...data, id: gradDoc.id },
+    universitySlug,
+    goodwills: goodwillsSnap.docs.map((d) => ({ ...d.data(), id: d.id })),
+    memories: memoriesSnap.docs.map((d) => ({ ...d.data(), id: d.id })),
+  };
+}

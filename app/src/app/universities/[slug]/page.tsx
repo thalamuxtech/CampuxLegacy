@@ -4,20 +4,32 @@ import { notFound } from 'next/navigation';
 import { SiteNav } from '@/components/site-nav';
 import { SiteFooter } from '@/components/site-footer';
 import {
-  getClassesForUniversity,
-  getUniversityBySlug,
+  getClassesForUniversity as demoClassesFor,
+  getUniversityBySlug as demoUniBySlug,
 } from '@/lib/demo-data';
+import {
+  getUniversityBySlugPublic,
+  listClassesForUniversity,
+} from '@/lib/firestore-server';
 import { Badge } from '@/components/ui/badge';
 import { Lock, ArrowUpRight } from 'lucide-react';
 
-export default function UniversityPage({
+export const dynamic = 'force-dynamic';
+
+export default async function UniversityPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const uni = getUniversityBySlug(params.slug);
+  let uni = await getUniversityBySlugPublic(params.slug);
+  if (!uni) uni = demoUniBySlug(params.slug);
   if (!uni) notFound();
-  const classes = getClassesForUniversity(uni.id);
+
+  const fromFirestore = await listClassesForUniversity(uni.id);
+  const classes =
+    fromFirestore && fromFirestore.length > 0
+      ? fromFirestore
+      : demoClassesFor(uni.id);
 
   return (
     <>
@@ -25,14 +37,16 @@ export default function UniversityPage({
       <main>
         {/* Hero */}
         <section className="relative h-[60vh] min-h-[420px] overflow-hidden">
-          <Image
-            src={uni.coverImage!}
-            alt={uni.name}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
+          {uni.coverImage && (
+            <Image
+              src={uni.coverImage}
+              alt={uni.name}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+          )}
           <div
             className="absolute inset-0"
             style={{
@@ -42,12 +56,13 @@ export default function UniversityPage({
           <div className="absolute inset-0 flex items-end">
             <div className="container pb-12 sm:pb-16 text-paper">
               <p className="text-xs uppercase tracking-[0.25em] opacity-80">
-                {uni.city}, {uni.country}
+                {uni.city}
+                {uni.country ? `, ${uni.country}` : ''}
               </p>
               <h1 className="serif text-5xl sm:text-7xl mt-3 max-w-3xl">
                 {uni.name}
               </h1>
-              {uni.motto && (
+              {'motto' in uni && uni.motto && (
                 <p className="mt-3 italic opacity-80 text-lg">{uni.motto}</p>
               )}
               <div className="mt-6 flex gap-3 flex-wrap">
@@ -72,53 +87,62 @@ export default function UniversityPage({
               <h2 className="serif text-4xl mt-2">Choose a class to enter.</h2>
             </div>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {classes.map((c) => (
-              <Link
-                key={c.id}
-                href={`/universities/${uni.slug}/${c.year}`}
-                className="group block rounded-3xl overflow-hidden bg-white border border-ink/10 hover:-translate-y-1 transition-transform"
-              >
-                <div className="relative aspect-[5/4]">
-                  <Image
-                    src={c.coverImage!}
-                    alt={`Class of ${c.year}`}
-                    fill
-                    sizes="(min-width:1024px) 33vw, 50vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/0" />
-                  {c.status === 'sealed' && (
-                    <div className="absolute top-4 right-4">
-                      <Badge variant="sealed">
-                        <Lock className="h-3 w-3" /> Sealed
-                      </Badge>
-                    </div>
-                  )}
-                  <div className="absolute bottom-5 left-5 right-5 text-paper">
-                    <p className="text-xs uppercase opacity-80 tracking-widest">
-                      Class of
-                    </p>
-                    <p className="serif text-6xl mt-1 leading-none">
-                      {c.year}
-                    </p>
-                    {c.theme && (
-                      <p className="mt-2 italic opacity-90">"{c.theme}"</p>
+          {classes.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-ink/15 p-16 text-center text-ink-500">
+              <p className="serif text-2xl">No classes published yet.</p>
+              <p className="mt-2 text-sm">Check back soon.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {classes.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/universities/${uni!.slug}/${c.year}`}
+                  className="group block rounded-3xl overflow-hidden bg-white border border-ink/10 hover:-translate-y-1 transition-transform"
+                >
+                  <div className="relative aspect-[5/4]">
+                    {c.coverImage && (
+                      <Image
+                        src={c.coverImage}
+                        alt={`Class of ${c.year}`}
+                        fill
+                        sizes="(min-width:1024px) 33vw, 50vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/0" />
+                    {c.status === 'sealed' && (
+                      <div className="absolute top-4 right-4">
+                        <Badge variant="sealed">
+                          <Lock className="h-3 w-3" /> Sealed
+                        </Badge>
+                      </div>
+                    )}
+                    <div className="absolute bottom-5 left-5 right-5 text-paper">
+                      <p className="text-xs uppercase opacity-80 tracking-widest">
+                        Class of
+                      </p>
+                      <p className="serif text-6xl mt-1 leading-none">
+                        {c.year}
+                      </p>
+                      {c.theme && (
+                        <p className="mt-2 italic opacity-90">"{c.theme}"</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="p-5 flex items-center justify-between text-xs text-ink-600">
-                  <span>
-                    <b className="text-ink">{c.graduatesCount}</b> graduates
-                  </span>
-                  <span className="inline-flex items-center gap-1 group-hover:text-accent transition-colors">
-                    Open yearbook
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className="p-5 flex items-center justify-between text-xs text-ink-600">
+                    <span>
+                      <b className="text-ink">{c.graduatesCount}</b> graduates
+                    </span>
+                    <span className="inline-flex items-center gap-1 group-hover:text-accent transition-colors">
+                      Open yearbook
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       </main>
       <SiteFooter />

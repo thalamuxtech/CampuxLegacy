@@ -1,17 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { SiteNav } from '@/components/site-nav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/auth-context';
+import { authErrorMessage } from '@/lib/auth-errors';
 
 export default function SignUpPage() {
-  const { signUp, configured } = useAuth();
+  const { signUp, signInWithGoogle, configured } = useAuth();
   const router = useRouter();
+  const search = useSearchParams();
+  const next = search.get('next') ?? '/dashboard';
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,19 +25,20 @@ export default function SignUpPage() {
     e.preventDefault();
     if (!configured) {
       toast.info('Demo mode: account simulated.');
-      router.push('/dashboard');
+      router.push(next);
       return;
     }
     setLoading(true);
     try {
-      await signUp(email, password);
-      router.push('/dashboard');
+      await signUp(email, password, displayName.trim() || undefined);
+      router.push(next);
     } catch (err) {
-      toast.error((err as Error).message);
+      toast.error(authErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }
+
   return (
     <>
       <SiteNav />
@@ -49,11 +55,21 @@ export default function SignUpPage() {
           <h1 className="serif text-4xl mt-2">Claim your graduating profile.</h1>
           <form onSubmit={onSubmit} className="mt-10 space-y-3">
             <Input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Your name"
+              autoComplete="name"
+              minLength={2}
+              maxLength={80}
+            />
+            <Input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@university.edu"
+              autoComplete="email"
             />
             <Input
               type="password"
@@ -61,12 +77,46 @@ export default function SignUpPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
+              placeholder="Create a password (min 6 chars)"
+              autoComplete="new-password"
             />
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating…' : 'Create account'}
             </Button>
           </form>
+          <div className="my-6 flex items-center gap-3 text-xs text-ink-400">
+            <div className="hairline flex-1" />
+            <span>or</span>
+            <div className="hairline flex-1" />
+          </div>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              if (!configured) {
+                toast.info('Demo mode: redirecting.');
+                router.push(next);
+                return;
+              }
+              try {
+                await signInWithGoogle();
+                router.push(next);
+              } catch (err) {
+                toast.error(authErrorMessage(err));
+              }
+            }}
+          >
+            Continue with Google
+          </Button>
+          <p className="mt-8 text-sm text-ink-500 text-center">
+            Already have an account?{' '}
+            <Link
+              href="/sign-in"
+              className="underline underline-offset-4 hover:text-ink"
+            >
+              Sign in
+            </Link>
+          </p>
         </motion.div>
       </main>
     </>
