@@ -4,12 +4,15 @@
 
 **Preserving the story of every graduating class — a premium digital yearbook for African universities.**
 
+[![Live](https://img.shields.io/badge/live-campuxlegacy.vercel.app-000?logo=vercel&logoColor=white)](https://campuxlegacy.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-14-000?logo=next.js&logoColor=white)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%C2%B7%20Firestore%20%C2%B7%20Storage%20%C2%B7%20Functions-FFCA28?logo=firebase&logoColor=000)](https://firebase.google.com)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth%20%C2%B7%20Firestore%20%C2%B7%20Storage-FFCA28?logo=firebase&logoColor=000)](https://firebase.google.com)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3-38BDF8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Framer Motion](https://img.shields.io/badge/Framer_Motion-11-FF0080?logo=framer&logoColor=white)](https://www.framer.com/motion/)
 [![License](https://img.shields.io/badge/license-All_rights_reserved-111)](#license)
+
+🌐 **Live at <https://campuxlegacy.vercel.app>**
 
 </div>
 
@@ -92,8 +95,11 @@ To wire up real Firebase, copy `app/.env.local.example` → `app/.env.local` and
 
 ## Deployment
 
-- **Vercel** auto-deploys the Next.js app from `app/` on every push to `main`. Free Hobby tier handles SSR + API routes.
-- **GitHub Actions** ([.github/workflows/deploy-prod.yml](.github/workflows/deploy-prod.yml)) syncs Firestore rules + indexes to the `campuxlegacy` Firebase project (Spark / free plan) when those files change.
+Production: <https://campuxlegacy.vercel.app>
+
+- **Vercel** auto-deploys the Next.js app from `app/` on every push to `main` — free Hobby tier handles SSR + API routes. Firebase Admin credentials live in Vercel env vars (`FIREBASE_ADMIN_*`); Web SDK config in `NEXT_PUBLIC_FIREBASE_*`.
+- **Firebase Spark (free plan)** provides Auth, Firestore, and Storage on the `campuxlegacy` project. No Cloud Functions — claim minting is handled by the local [`scripts/grant-superadmin.mjs`](scripts/grant-superadmin.mjs).
+- **GitHub Actions** ([.github/workflows/deploy-prod.yml](.github/workflows/deploy-prod.yml)) syncs Firestore rules + indexes to `campuxlegacy` when those files change.
 
 See [`DEPLOY_VERCEL.md`](DEPLOY_VERCEL.md) for the full setup walkthrough (env vars, Auth providers, superadmin bootstrap).
 
