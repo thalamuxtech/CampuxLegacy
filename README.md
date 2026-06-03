@@ -20,14 +20,29 @@ CampuxLegacy turns once-in-a-lifetime graduation moments into a lasting digital 
 
 ---
 
+## Table of contents
+
+- [Highlights](#highlights)
+- [Tech stack](#tech-stack)
+- [Quick start](#quick-start)
+- [Project structure](#project-structure)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Routes](#routes)
+- [Deployment](#deployment)
+- [License](#license)
+
+---
+
 ## Highlights
 
 - **Next.js 14 (App Router)** with TypeScript, Tailwind, Framer Motion
-- **Firebase** for Auth, Firestore, and Storage (Spark / free plan)
-- **Vercel** hosts the Next.js app (SSR + API routes on the free Hobby tier)
+- **Firebase** for Auth, Firestore, and Storage on the **Spark (free)** plan
+- **Vercel** hosts the Next.js app — SSR + API routes on the free Hobby tier
 - **Role-based access** via Firebase custom claims (`superadmin`, `university_admin`, `rep`, `student`, …)
 - **Server-side session cookies** signed by the Admin SDK — no raw ID tokens in the browser
 - **Premium UI** — magazine-style graduate profiles, animated reveals, ⌘K command palette, skeleton loading states
+- **Tamper-evident sealing** — every approved class snapshotted into an immutable archive with a SHA-256 manifest
 
 ## Tech stack
 
@@ -64,6 +79,9 @@ To wire up real Firebase, copy `app/.env.local.example` → `app/.env.local` and
 │   ├── firestore.rules               Security rules (deployed to campuxlegacy)
 │   ├── storage.rules                 Storage rules (deployed to campuxlegacy)
 │   └── README.md                     Developer guide
+├── scripts/                          One-shot admin scripts (superadmin bootstrap)
+├── .github/workflows/                Rules-sync workflow
+├── DEPLOY_VERCEL.md                  End-to-end deploy walkthrough
 └── README.md                         You are here
 ```
 
@@ -93,6 +111,19 @@ To wire up real Firebase, copy `app/.env.local.example` → `app/.env.local` and
 - **Portrait uploads** require a `graduateIds.{gid}=true` custom claim, minted server-side the moment a user claims their profile.
 - **Sealing** clones every `approved` graduate into an immutable `archive/{id}` subdoc, flips the class status, and writes a SHA-256 manifest into the audit log.
 
+## Routes
+
+| Path | Purpose |
+|---|---|
+| `/` | Animated landing page |
+| `/universities` · `/universities/[slug]` · `/universities/[slug]/[year]` | Browse, university hub, class yearbook |
+| `/g/[id]` | Magazine-style graduate profile |
+| `/search` | Global search |
+| `/sign-in` · `/sign-up` | Auth (sets a server session cookie via `/api/session`) |
+| `/dashboard` | Student dashboard |
+| `/admin/*` | Admin console (gated by `superadmin` / `university_admin` claim) |
+| `/for-schools` · `/contact` · `/about` | Marketing + onboarding intake |
+
 ## Deployment
 
 Production: <https://campuxlegacy.vercel.app>
@@ -105,4 +136,4 @@ See [`DEPLOY_VERCEL.md`](DEPLOY_VERCEL.md) for the full setup walkthrough (env v
 
 ## License
 
-All rights reserved © 2026 thalamux.
+All rights reserved © 2026 thalamuxTech.
