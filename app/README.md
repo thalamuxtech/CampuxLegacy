@@ -45,8 +45,8 @@ Without the server vars, the admin SDK falls back to demo mode: admin pages read
 
 - **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Framer Motion, Lenis, Radix UI primitives.
 - **Backend:** Firebase Cloud Functions (Node 20, TypeScript), Cloud Firestore, Cloud Storage, Firebase Auth.
-- **Hosting:** Firebase App Hosting (Next.js native), configured via `apphosting.yaml`.
-- **CI/CD:** GitHub Actions for functions + rules deploy on push to `main`; App Hosting auto-deploys the Next app from the connected branch.
+- **Hosting:** Firebase Hosting (`campuxlegacy.web.app`) — Next.js wrapped in a Cloud Function via firebase-tools web-frameworks support, configured in `firebase.json`.
+- **CI/CD:** GitHub Actions deploys hosting + functions + rules in one shot on every push to `main`.
 
 ## Scripts
 
@@ -97,7 +97,10 @@ After that, `setRole` is locked to existing superadmins.
 
 ## Deployment
 
-1. **Firebase App Hosting** auto-deploys the Next.js app from the branch you connect in the Firebase Console.
-2. **GitHub Actions** ([../.github/workflows/deploy-prod.yml](../.github/workflows/deploy-prod.yml)) deploys functions, Firestore rules/indexes, and Storage rules on push to `main` (only when the relevant paths change).
+GitHub Actions ([../.github/workflows/deploy-prod.yml](../.github/workflows/deploy-prod.yml)) deploys hosting (Next.js wrapped in a Cloud Function), functions, Firestore rules + indexes, and Storage rules on every push to `main`. Public URL: `campuxlegacy.web.app`.
 
-Required GitHub repo secret: `FIREBASE_SA_PROD` — the full service-account JSON.
+Required:
+- GitHub repo secret `FIREBASE_SA_PROD` — the full service-account JSON
+- Firebase project on the Blaze (pay-as-you-go) plan — Cloud Functions don't run on Spark
+
+See [`../GO_LIVE.md`](../GO_LIVE.md) for the full bring-up checklist.

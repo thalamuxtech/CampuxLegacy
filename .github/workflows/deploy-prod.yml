@@ -1,9 +1,8 @@
-name: Deploy Functions + Rules
+name: Deploy Firebase rules
 on:
   push:
     branches: [main]
     paths:
-      - 'app/functions/**'
       - 'app/firestore.rules'
       - 'app/firestore.indexes.json'
       - 'app/storage.rules'
@@ -11,6 +10,9 @@ on:
       - '.github/workflows/deploy-prod.yml'
   workflow_dispatch:
 
+# The Next.js app is hosted on Vercel (see DEPLOY_VERCEL.md), which auto-deploys
+# on every push. This workflow only syncs Firestore + Storage security rules
+# and indexes to the campuxlegacy Firebase project (free Spark plan).
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,8 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: app/functions/package-lock.json
 
       - name: Write service account
         run: |
@@ -33,17 +33,11 @@ jobs:
         env:
           SA_JSON: ${{ secrets.FIREBASE_SA_PROD }}
 
-      - name: Install + build functions
+      - name: Deploy rules + indexes
         run: |
-          cd app/functions
-          npm ci
-          npm run build
-
-      - name: Deploy functions, rules, indexes
-        run: |
-          cd app
           npx firebase-tools deploy \
-            --only functions,firestore:rules,firestore:indexes,storage \
+            --only firestore:rules,firestore:indexes,storage \
             --project campuxlegacy \
             --non-interactive \
             --force
+        working-directory: app

@@ -20,8 +20,8 @@ CampuxLegacy turns once-in-a-lifetime graduation moments into a lasting digital 
 ## Highlights
 
 - **Next.js 14 (App Router)** with TypeScript, Tailwind, Framer Motion
-- **Firebase** for Auth, Firestore, Storage, and Cloud Functions
-- **Firebase App Hosting** for the web app; GitHub Actions for functions and rules
+- **Firebase** for Auth, Firestore, and Storage (Spark / free plan)
+- **Vercel** hosts the Next.js app (SSR + API routes on the free Hobby tier)
 - **Role-based access** via Firebase custom claims (`superadmin`, `university_admin`, `rep`, `student`, …)
 - **Server-side session cookies** signed by the Admin SDK — no raw ID tokens in the browser
 - **Premium UI** — magazine-style graduate profiles, animated reveals, ⌘K command palette, skeleton loading states
@@ -34,9 +34,9 @@ CampuxLegacy turns once-in-a-lifetime graduation moments into a lasting digital 
 | Styling | Tailwind CSS 3 · Framer Motion · Radix UI primitives |
 | Data | Cloud Firestore (nested schema) · Cloud Storage |
 | Auth | Firebase Auth · session cookies · custom claims |
-| Backend | Cloud Functions (Node 20) · Sharp (portrait variants) |
-| Hosting | Firebase App Hosting (web) · Firebase (functions/rules) |
-| CI/CD | GitHub Actions |
+| Hosting | Vercel (Next.js SSR + API routes) |
+| Data services | Firebase Spark (Auth · Firestore · Storage) |
+| CI/CD | Vercel (auto-deploy on push) · GitHub Actions (rules sync) |
 
 ## Quick start
 
@@ -54,14 +54,12 @@ To wire up real Firebase, copy `app/.env.local.example` → `app/.env.local` and
 
 ```
 .
-├── app/                              Next.js + Firebase monorepo
+├── app/                              Next.js app deployed to Vercel
 │   ├── src/app/                      App Router pages (public, /admin, /dashboard, /api)
 │   ├── src/components/               UI + admin components
 │   ├── src/lib/                      auth, Firestore, types, demo data
-│   ├── functions/                    Cloud Functions (Node 20, TypeScript)
-│   ├── firestore.rules               Security rules
-│   ├── storage.rules                 Storage rules
-│   ├── apphosting.yaml               Firebase App Hosting config
+│   ├── firestore.rules               Security rules (deployed to campuxlegacy)
+│   ├── storage.rules                 Storage rules (deployed to campuxlegacy)
 │   └── README.md                     Developer guide
 └── README.md                         You are here
 ```
@@ -94,11 +92,10 @@ To wire up real Firebase, copy `app/.env.local.example` → `app/.env.local` and
 
 ## Deployment
 
-- **Web app:** Firebase App Hosting auto-deploys from `main` after a one-time connection in the Firebase Console (App Hosting → New backend → root `app/`).
-- **Functions + rules + indexes:** GitHub Actions in [.github/workflows/deploy-prod.yml](.github/workflows/deploy-prod.yml) runs on every push to `main` that touches functions or rules.
-- **Secrets:** `FIREBASE_SA_PROD` (service-account JSON) in the GitHub repo. Admin SDK credentials live in App Hosting secrets — never committed.
+- **Vercel** auto-deploys the Next.js app from `app/` on every push to `main`. Free Hobby tier handles SSR + API routes.
+- **GitHub Actions** ([.github/workflows/deploy-prod.yml](.github/workflows/deploy-prod.yml)) syncs Firestore rules + indexes to the `campuxlegacy` Firebase project (Spark / free plan) when those files change.
 
-See [`app/README.md`](app/README.md#deployment) for the full deployment + bootstrap walkthrough.
+See [`DEPLOY_VERCEL.md`](DEPLOY_VERCEL.md) for the full setup walkthrough (env vars, Auth providers, superadmin bootstrap).
 
 ## License
 

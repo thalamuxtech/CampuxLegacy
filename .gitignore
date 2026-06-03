@@ -17,8 +17,10 @@ app/functions/lib/
 # Firebase service-account keys (NEVER commit)
 *-firebase-adminsdk-*.json
 **/*-firebase-adminsdk-*.json
-planning/*.json
 .firebase/
+
+# Internal planning docs (kept local, not pushed)
+planning/
 
 # Logs / OS
 *.log
