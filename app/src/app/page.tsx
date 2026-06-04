@@ -2,6 +2,7 @@ import { SiteNav } from '@/components/site-nav';
 import { SiteFooter } from '@/components/site-footer';
 import { Hero } from '@/components/sections/hero';
 import { TrustStrip } from '@/components/sections/trust-strip';
+import { ByTheNumbers } from '@/components/sections/by-the-numbers';
 import { HowItWorks } from '@/components/sections/how-it-works';
 import { FeatureShowcase } from '@/components/sections/feature-showcase';
 import { ClassPreview } from '@/components/sections/class-preview';
@@ -15,6 +16,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <TrustStrip />
+        <ByTheNumbers />
         <HowItWorks />
         <FeatureShowcase />
         <ClassPreview />

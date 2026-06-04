@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Camera, Film, Quote, Users, Heart, ShieldCheck } from 'lucide-react';
 import { demoGraduates } from '@/lib/demo-data';
+import { SplitText } from '@/components/motion/split-text';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -36,8 +37,11 @@ export function FeatureShowcase() {
               · More than a yearbook
             </p>
             <h2 className="serif text-4xl sm:text-5xl lg:text-6xl mt-4 leading-[1.05]">
-              A memory and{' '}
-              <span className="italic text-accent-300">identity</span> platform.
+              <SplitText text="A memory and " />
+              <span className="relative inline-block italic text-accent-300">
+                identity
+              </span>
+              <SplitText text=" platform." whileInView={false} />
             </h2>
             <p className="mt-7 text-paper/70 text-lg max-w-lg leading-relaxed">
               Capture the people, moments and experiences that defined the

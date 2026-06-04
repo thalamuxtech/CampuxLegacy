@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Shield, KeyRound } from 'lucide-react';
+import { SplitText } from '@/components/motion/split-text';
+import { AccentReveal } from '@/components/motion/accent-reveal';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -21,8 +23,9 @@ export function PrivacyBlock() {
               · Privacy by design
             </p>
             <h2 className="serif text-4xl sm:text-5xl lg:text-6xl mt-4 leading-[1.05]">
-              Public by name.{' '}
-              <span className="italic text-accent">Private</span> by default.
+              <SplitText text="Public by name. " />
+              <AccentReveal>Private</AccentReveal>
+              <SplitText text=" by default." whileInView={false} />
             </h2>
             <p className="mt-7 text-ink/70 text-lg max-w-lg leading-relaxed">
               Registered users may view basic public details such as a

@@ -7,6 +7,9 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { demoGraduates } from '@/lib/demo-data';
+import { SplitText } from '@/components/motion/split-text';
+import { AccentReveal } from '@/components/motion/accent-reveal';
+import { CountUp } from '@/components/motion/count-up';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -55,17 +58,21 @@ export function Hero() {
               </Badge>
             </motion.div>
 
-            <motion.h1
-              variants={fadeUp}
-              initial="hidden"
-              animate="show"
-              custom={1}
-              className="display mt-7 text-5xl xs:text-6xl sm:text-7xl lg:text-[92px]"
-            >
-              Preserving the{' '}
-              <span className="italic font-normal text-accent">story</span> of
-              every graduating class.
-            </motion.h1>
+            <h1 className="display mt-7 text-5xl xs:text-6xl sm:text-7xl lg:text-[92px]">
+              <SplitText
+                text="Preserving the "
+                whileInView={false}
+                delay={0.25}
+                stagger={0.06}
+              />
+              <AccentReveal>story</AccentReveal>
+              <SplitText
+                text=" of every graduating class."
+                whileInView={false}
+                delay={0.55}
+                stagger={0.05}
+              />
+            </h1>
 
             <motion.p
               variants={fadeUp}
@@ -121,7 +128,9 @@ export function Hero() {
                 ))}
               </div>
               <p>
-                <span className="font-semibold text-ink">46,000+</span>{' '}
+                <span className="font-semibold text-ink tabular-nums">
+                  <CountUp to={46640} suffix="+" duration={2.4} />
+                </span>{' '}
                 graduates already preserving their legacy.
               </p>
             </motion.div>

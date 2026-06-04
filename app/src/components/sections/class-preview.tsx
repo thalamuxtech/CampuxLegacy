@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import { demoUniversities } from '@/lib/demo-data';
+import { SplitText } from '@/components/motion/split-text';
+import { AccentReveal } from '@/components/motion/accent-reveal';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -24,8 +26,9 @@ export function ClassPreview() {
               · Enrolled universities
             </p>
             <h2 className="serif text-4xl sm:text-5xl lg:text-6xl mt-4 max-w-xl leading-[1.05]">
-              Browse the institutions already preserving their{' '}
-              <span className="italic text-accent">legacy</span>.
+              <SplitText text="Browse the institutions already preserving their " />
+              <AccentReveal>legacy</AccentReveal>
+              <SplitText text="." whileInView={false} />
             </h2>
           </div>
           <Link

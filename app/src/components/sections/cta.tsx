@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { SplitText } from '@/components/motion/split-text';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -34,9 +35,11 @@ export function CTA() {
               · The legacy starts now
             </p>
             <h2 className="serif text-4xl sm:text-6xl lg:text-7xl mt-5 max-w-3xl mx-auto leading-[1.02]">
-              Your graduation, sealed{' '}
-              <span className="italic text-accent-300">beautifully</span> for
-              life.
+              <SplitText text="Your graduation, sealed " />
+              <span className="relative inline-block italic text-accent-300">
+                beautifully
+              </span>
+              <SplitText text=" for life." whileInView={false} />
             </h2>
             <p className="mt-7 text-paper/70 text-lg max-w-xl mx-auto leading-relaxed">
               Bring your university on board, or claim your own graduating

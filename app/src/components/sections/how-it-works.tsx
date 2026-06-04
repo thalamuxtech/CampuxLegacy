@@ -9,6 +9,8 @@ import {
   Rocket,
   Lock,
 } from 'lucide-react';
+import { SplitText } from '@/components/motion/split-text';
+import { AccentReveal } from '@/components/motion/accent-reveal';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -61,8 +63,9 @@ export function HowItWorks() {
             · How it works
           </p>
           <h2 className="serif text-4xl sm:text-5xl lg:text-6xl mt-4 leading-[1.05]">
-            Six careful stages, from agreement to{' '}
-            <span className="italic text-accent">archive</span>.
+            <SplitText text="Six careful stages, from agreement to " />
+            <AccentReveal>archive</AccentReveal>
+            <SplitText text="." whileInView={false} />
           </h2>
         </motion.div>
 
