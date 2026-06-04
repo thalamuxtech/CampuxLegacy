@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { demoGraduates } from '@/lib/demo-data';
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 28 },
   show: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.1 + i * 0.08, duration: 0.7, ease: 'easeOut' },
+    transition: { delay: 0.12 + i * 0.08, duration: 0.9, ease: EASE },
   }),
 };
 
@@ -22,8 +24,20 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden pt-28 sm:pt-36 pb-24 sm:pb-32">
-      {/* Decorative background */}
-      <div className="absolute inset-0 -z-10 bg-radial-fade" />
+      {/* Editorial mesh + slow drift */}
+      <motion.div
+        aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.6, ease: 'easeOut' }}
+        className="absolute inset-0 -z-10 mesh-bg"
+      />
+      <motion.div
+        aria-hidden
+        animate={{ x: ['0%', '-2%', '0%'], y: ['0%', '1%', '0%'] }}
+        transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute inset-0 -z-10 mesh-bg opacity-50"
+      />
       <div className="absolute inset-0 -z-10 bg-grain opacity-40" />
 
       <div className="container relative">
@@ -46,11 +60,11 @@ export function Hero() {
               initial="hidden"
               animate="show"
               custom={1}
-              className="serif mt-6 text-5xl xs:text-6xl sm:text-7xl lg:text-[88px] leading-[0.95] tracking-tight"
+              className="display mt-7 text-5xl xs:text-6xl sm:text-7xl lg:text-[92px]"
             >
               Preserving the{' '}
-              <span className="italic text-accent">story</span> of every
-              graduating class.
+              <span className="italic font-normal text-accent">story</span> of
+              every graduating class.
             </motion.h1>
 
             <motion.p
@@ -58,7 +72,7 @@ export function Hero() {
               initial="hidden"
               animate="show"
               custom={2}
-              className="mt-6 text-lg sm:text-xl text-ink-600 max-w-xl"
+              className="mt-7 text-lg sm:text-xl text-ink/70 max-w-xl leading-relaxed"
             >
               Portraits. Memories. Goodwill messages. Sealed forever as a
               trusted digital legacy for students and the universities that
@@ -72,9 +86,10 @@ export function Hero() {
               custom={3}
               className="mt-10 flex flex-wrap items-center gap-3"
             >
-              <Button asChild size="lg" variant="default">
+              <Button asChild size="lg" variant="default" className="group">
                 <Link href="/universities">
-                  Browse universities <ArrowRight className="h-4 w-4" />
+                  Browse universities
+                  <ArrowRight className="h-4 w-4 transition-transform duration-500 ease-editorial group-hover:translate-x-1" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
@@ -87,19 +102,19 @@ export function Hero() {
               initial="hidden"
               animate="show"
               custom={4}
-              className="mt-12 flex items-center gap-6 text-sm text-ink-500"
+              className="mt-14 flex items-center gap-6 text-sm text-ink/60"
             >
               <div className="flex -space-x-2">
                 {portraits.slice(0, 5).map((p) => (
                   <div
                     key={p.id}
-                    className="h-9 w-9 rounded-full ring-2 ring-paper overflow-hidden bg-ink/5"
+                    className="h-10 w-10 rounded-full ring-2 ring-paper overflow-hidden bg-ink/5 shadow-editorial"
                   >
                     <Image
                       src={p.portraitUrl}
                       alt=""
-                      width={36}
-                      height={36}
+                      width={40}
+                      height={40}
                       className="object-cover h-full w-full"
                     />
                   </div>
@@ -133,16 +148,16 @@ function PortraitCollage({ portraits }: { portraits: typeof demoGraduates }) {
         return (
           <motion.div
             key={p.id}
-            initial={{ opacity: 0, y: 24, rotate: 0 }}
+            initial={{ opacity: 0, y: 28, rotate: 0 }}
             animate={{
               opacity: 1,
               y: 0,
               rotate: ((x - 1) * 1.5 + (y - 1) * -1) * 1,
             }}
             transition={{
-              delay: 0.2 + i * 0.07,
-              duration: 0.8,
-              ease: [0.16, 1, 0.3, 1],
+              delay: 0.25 + i * 0.07,
+              duration: 0.95,
+              ease: EASE,
             }}
             whileHover={{ y: -6, scale: 1.04, zIndex: 10 }}
             className="absolute"
@@ -154,16 +169,16 @@ function PortraitCollage({ portraits }: { portraits: typeof demoGraduates }) {
               transform: `translateY(${offset}px)`,
             }}
           >
-            <div className="relative h-full w-full overflow-hidden rounded-2xl bg-ink/10 ring-1 ring-ink/10 shadow-[0_24px_40px_-24px_rgba(11,11,15,0.35)]">
+            <div className="relative h-full w-full overflow-hidden rounded-2xl bg-ink/10 ring-1 ring-ink/10 shadow-[0_24px_40px_-24px_rgba(28,20,16,0.35)]">
               <Image
                 src={p.portraitUrl}
                 alt={p.fullName}
                 fill
                 sizes="200px"
-                className="object-cover"
+                className="object-cover transition-transform duration-1000 ease-editorial hover:scale-110"
               />
               <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-ink/80 to-transparent">
-                <p className="text-[10px] text-paper/90 truncate">
+                <p className="text-[10px] text-paper/95 truncate font-medium">
                   {p.fullName}
                 </p>
               </div>
@@ -171,17 +186,18 @@ function PortraitCollage({ portraits }: { portraits: typeof demoGraduates }) {
           </motion.div>
         );
       })}
-      {/* Floating accent card */}
+      {/* Floating accent quote card — now glass */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8, rotate: -8 }}
-        animate={{ opacity: 1, scale: 1, rotate: -6 }}
-        transition={{ delay: 1, duration: 0.8 }}
-        className="absolute -bottom-6 -left-6 max-w-[200px] rounded-2xl bg-paper p-4 shadow-2xl ring-1 ring-ink/10"
+        initial={{ opacity: 0, scale: 0.85, rotate: -10 }}
+        animate={{ opacity: 1, scale: 1, rotate: -5 }}
+        transition={{ delay: 1.1, duration: 1, ease: EASE }}
+        whileHover={{ rotate: -3, y: -4 }}
+        className="absolute -bottom-6 -left-6 max-w-[220px] rounded-2xl glass-card p-5"
       >
-        <p className="text-[10px] uppercase tracking-widest text-ink-400">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-accent font-medium">
           Sealed legacy
         </p>
-        <p className="serif text-lg mt-1 leading-tight">
+        <p className="serif text-xl mt-2 leading-snug">
           “From late nights to convocation.”
         </p>
       </motion.div>

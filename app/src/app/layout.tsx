@@ -1,20 +1,22 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Fraunces } from 'next/font/google';
+import { Manrope, Cormorant } from 'next/font/google';
 import { Toaster } from 'sonner';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-manrope',
   display: 'swap',
+  weight: ['300', '400', '500', '600', '700'],
 });
 
-const fraunces = Fraunces({
+const cormorant = Cormorant({
   subsets: ['latin'],
-  variable: '--font-fraunces',
+  variable: '--font-cormorant',
   display: 'swap',
-  axes: ['SOFT', 'WONK', 'opsz'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
@@ -35,14 +37,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#FAF7F2',
+  themeColor: '#F4EBD9',
   width: 'device-width',
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${manrope.variable} ${cormorant.variable}`}>
       <body className="min-h-dvh font-sans antialiased">
         <Providers>{children}</Providers>
         <Toaster position="top-center" richColors />

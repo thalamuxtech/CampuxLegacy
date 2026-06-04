@@ -14,7 +14,7 @@ export function Badge({
     accent: 'bg-accent/10 text-accent-700 border border-accent/20',
     outline: 'border border-ink/15 text-ink',
     sealed:
-      'bg-gradient-to-br from-accent-500 to-accent-700 text-white shadow-[0_4px_16px_-6px_rgba(184,133,74,0.5)]',
+      'bg-gradient-to-br from-accent-500 to-accent-700 text-paper shadow-[0_4px_16px_-6px_rgba(184,92,56,0.45)]',
   }[variant];
   return (
     <span

@@ -28,60 +28,72 @@ export function SiteNav() {
   return (
     <header
       className={cn(
-        'fixed top-0 inset-x-0 z-50 transition-all duration-500',
-        scrolled
-          ? 'bg-paper/80 backdrop-blur-md border-b border-ink/5'
-          : 'bg-transparent'
+        'fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-editorial',
+        scrolled ? 'pt-3 sm:pt-4' : 'pt-0'
       )}
     >
-      <div className="container flex h-16 sm:h-20 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <motion.div
-            initial={{ rotate: -8 }}
-            animate={{ rotate: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-paper"
-          >
-            <Sparkles className="h-4 w-4" />
-          </motion.div>
-          <span className="serif text-xl font-medium tracking-tight">
-            CampuxLegacy
-          </span>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-1">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="px-4 py-2 rounded-full text-sm text-ink-600 hover:text-ink hover:bg-ink/5 transition-colors"
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="hidden md:flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/search">
-              <Search className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/sign-in">Sign in</Link>
-          </Button>
-          <Button asChild variant="accent" size="sm">
-            <Link href="/for-schools">Onboard your school</Link>
-          </Button>
-        </div>
-
-        <button
-          aria-label="Menu"
-          onClick={() => setOpen((v) => !v)}
-          className="md:hidden grid h-10 w-10 place-items-center rounded-full border border-ink/10"
+      <div className="container">
+        <motion.div
+          initial={false}
+          animate={{
+            paddingInline: scrolled ? 16 : 0,
+          }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className={cn(
+            'flex h-16 sm:h-20 items-center justify-between transition-all duration-500 ease-editorial',
+            scrolled
+              ? 'glass rounded-full px-5 sm:px-6 shadow-editorial'
+              : 'px-0'
+          )}
         >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <motion.div
+              initial={{ rotate: -8 }}
+              animate={{ rotate: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="grid h-9 w-9 place-items-center rounded-xl bg-ink text-paper transition-colors group-hover:bg-accent"
+            >
+              <Sparkles className="h-4 w-4" />
+            </motion.div>
+            <span className="serif text-xl font-medium tracking-tight">
+              CampuxLegacy
+            </span>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-1">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="px-4 py-2 rounded-full text-sm text-ink/70 hover:text-ink hover:bg-ink/5 transition-colors duration-300"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="hidden md:flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" aria-label="Search">
+              <Link href="/search">
+                <Search className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/sign-in">Sign in</Link>
+            </Button>
+            <Button asChild variant="accent" size="sm">
+              <Link href="/for-schools">Onboard your school</Link>
+            </Button>
+          </div>
+
+          <button
+            aria-label="Menu"
+            onClick={() => setOpen((v) => !v)}
+            className="md:hidden grid h-10 w-10 place-items-center rounded-full border border-ink/10 bg-paper/80 backdrop-blur-md transition-colors hover:bg-paper"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </motion.div>
       </div>
 
       <AnimatePresence>
@@ -90,25 +102,30 @@ export function SiteNav() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="md:hidden border-t border-ink/5 bg-paper"
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="md:hidden mt-2 mx-4 rounded-3xl glass-card overflow-hidden"
           >
-            <div className="container py-4 flex flex-col gap-1">
+            <div className="px-5 py-5 flex flex-col gap-1">
               {links.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="py-3 px-2 text-base text-ink"
+                  className="py-3 px-2 text-base text-ink rounded-lg hover:bg-ink/5"
                 >
                   {l.label}
                 </Link>
               ))}
-              <div className="grid grid-cols-2 gap-2 pt-3">
+              <div className="grid grid-cols-2 gap-2 pt-4">
                 <Button asChild variant="outline">
-                  <Link href="/sign-in">Sign in</Link>
+                  <Link href="/sign-in" onClick={() => setOpen(false)}>
+                    Sign in
+                  </Link>
                 </Button>
                 <Button asChild variant="accent">
-                  <Link href="/for-schools">Onboard school</Link>
+                  <Link href="/for-schools" onClick={() => setOpen(false)}>
+                    Onboard school
+                  </Link>
                 </Button>
               </div>
             </div>
