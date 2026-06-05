@@ -1,28 +1,30 @@
 'use client';
 
-import { motion, useInView, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
+import { animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
 interface CountUpProps {
   to: number;
   /** Format the running value. Default: integer with thousands separator. */
   format?: (value: number) => string;
-  /** Duration in seconds (advisory — spring decides). Default 2. */
+  /** Duration in seconds. Default 2. */
   duration?: number;
   className?: string;
   /** Suffix appended after the number (e.g. "+", "k"). */
   suffix?: string;
   /** Prefix prepended (e.g. "$"). */
   prefix?: string;
+  /** Scroll threshold. 0 = trigger on mount (first viewport). Default 0. */
+  rootMargin?: string;
 }
 
 const defaultFormat = (v: number) =>
   Math.round(v).toLocaleString('en-US');
 
 /**
- * Counts from 0 → `to` when scrolled into view, once. Springs to feel
- * natural rather than linear. Respects prefers-reduced-motion (renders final
- * value immediately).
+ * Counts from 0 → `to` when scrolled into view, once. Uses tween (animate())
+ * with editorial easing — predictable duration, no spring degeneracy.
+ * Respects prefers-reduced-motion.
  */
 export function CountUp({
   to,
@@ -31,17 +33,14 @@ export function CountUp({
   className,
   suffix,
   prefix,
+  rootMargin = '0px',
 }: CountUpProps) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLSpanElement | null>(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const inView = useInView(ref, { once: true, margin: rootMargin as `${number}px` });
 
   const mv = useMotionValue(0);
-  const spring = useSpring(mv, {
-    duration: duration * 1000,
-    bounce: 0,
-  });
-  const display = useTransform(spring, (v) =>
+  const display = useTransform(mv, (v) =>
     `${prefix ?? ''}${format(v)}${suffix ?? ''}`
   );
 
@@ -50,8 +49,13 @@ export function CountUp({
       mv.set(to);
       return;
     }
-    if (inView) mv.set(to);
-  }, [inView, to, mv, reduce]);
+    if (!inView) return;
+    const controls = animate(mv, to, {
+      duration,
+      ease: [0.16, 1, 0.3, 1],
+    });
+    return () => controls.stop();
+  }, [inView, to, mv, reduce, duration]);
 
   return (
     <motion.span ref={ref} className={className}>
